@@ -1,22 +1,22 @@
 import './css/styles.css';
 
 import Notiflix from 'notiflix';
-// import { fetchFoto } from './fetch-foto';
-// import { fetchImage } from './fetch-foto';
-import NewsApiService from './fetch-foto';
+
 import NewsApiService from './fetch-foto';
 
-// import marcupPictures from ' ./templades/markup-pictures.hbs ';
+import SimpleLightbox from 'simplelightbox';
+
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
 const refs = {
   form: document.querySelector('#search-form'),
   input: document.querySelector('[type="text"]'),
   sendBtn: document.querySelector('[type="submit"]'),
   imageMarkup: document.querySelector('.gallery'),
-  procesedBtn: document.querySelector('.load-more'),
+  procesedBtn: document.querySelector('[type="button"]'),
 };
 // refs.sendBtn.disabled = true;
-refs.procesedBtn.disabled = true;
+// refs.procesedBtn.disabled = true;
 const newsApiService = new NewsApiService();
 
 refs.form.addEventListener('submit', dataInput);
@@ -26,8 +26,19 @@ function dataInput(e) {
   e.preventDefault();
   clearMarkup();
   newsApiService.query = e.currentTarget.elements.searchQuery.value;
+
   newsApiService.resetPage();
-  newsApiService.fetchFoto().then(newMarcupPictures);
+
+  if (newsApiService.query === '') {
+    Notiflix.Notify.failure(
+      'Sorry, there are no images matching your search query. Please try again.'
+    );
+    refs.procesedBtn.classList.add('is-hidden');
+    return;
+  }
+  if (newsApiService.query !== '') {
+    newsApiService.fetchFoto().then(newMarcupPictures);
+  }
 }
 
 function onProcesed() {
@@ -35,12 +46,13 @@ function onProcesed() {
 }
 
 function newMarcupPictures(data = []) {
+  console.log(data);
   if (data.length === 0) {
     Notiflix.Notify.failure(
       'Sorry, there are no images matching your search query. Please try again.'
     );
-  } else if (data.length > 0) {
-    Notiflix.Notify.failure(`"Hooray! We found ${data.totalHits} images."`);
+    refs.procesedBtn.classList.add('is-hidden');
+    return;
   }
   const newPicture = data
     .map(hits => {
@@ -68,9 +80,19 @@ function newMarcupPictures(data = []) {
    `;
     })
     .join('');
-  refs.imageMarkup.innerHTML += newPicture;
-  refs.procesedBtn.disabled = false;
+
+  //   refs.imageMarkup.innerHTML += newPicture;
+  refs.imageMarkup.insertAdjacentHTML('beforeend', newPicture);
+  galleryLightbox.refresh();
+
+  refs.procesedBtn.classList.remove('is-hidden');
 }
+
+const galleryLightbox = new SimpleLightbox('.gallery a', {
+  captionsData: 'alt',
+  captionDelay: 250,
+});
+
 function clearMarkup() {
   refs.imageMarkup.innerHTML = '';
 }
