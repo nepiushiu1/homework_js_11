@@ -26,9 +26,8 @@ function dataInput(e) {
   e.preventDefault();
   clearMarkup();
   newsApiService.query = e.currentTarget.elements.searchQuery.value;
-
   newsApiService.resetPage();
-
+  refs.procesedBtn.classList.add('is-hidden');
   if (newsApiService.query === '') {
     Notiflix.Notify.failure(
       'Sorry, there are no images matching your search query. Please try again.'
